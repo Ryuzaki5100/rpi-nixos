@@ -1,0 +1,9 @@
+# Build artifacts
+/result
+/images
+*.img
+*.img.zst
+
+# Nix / editor cruft
+.direnv/
+result-*
