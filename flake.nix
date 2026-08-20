@@ -59,8 +59,19 @@
               ];
             })
 
-          ./configuration.nix
+./configuration.nix
           ./modules/desktop.nix
+        ];
+      };
+
+      # Vanilla bootstrap image: base system + NetworkManager + wifitui +
+      # ssh, with a generic default user. The user joins wifi on first boot,
+      # clones this repo, runs ./setup.sh to define their own account, then
+      # rebuilds to the full desktop (rpi5).
+      nixosConfigurations.rpi5-minimal = nixos-raspberrypi.lib.nixosInstaller {
+        modules = [
+          nixos-raspberrypi.nixosModules.raspberry-pi-5.base
+          ./modules/minimal.nix
         ];
       };
     };

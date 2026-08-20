@@ -1,0 +1,22 @@
+# local.nix.example — template for per-device personal config.
+#
+# Copy to `local.nix` (gitignored, NOT committed) and fill in your values, or
+# run `./setup.sh` which generates it for you from prompts.
+#
+# Its sibling `secrets.nix` holds the actual secrets (password / wifi psk),
+# so the committed example files contain no real credentials.
+{
+  # Hostname; also used for mDNS (avahi) so the Pi answers at <hostName>.local.
+  hostName = "ryuzakipi";
+
+  # The desktop user account created in the image (after setup / rebuild).
+  userName = "user";
+
+  # Optional SSH public key for password-less login (set to null to disable).
+  sshKey = "ssh-ed25519 AAAA... user@host";
+
+  # Wi-Fi SSID to auto-connect via NetworkManager. Set ssid to "" to skip.
+  wifi = {
+    ssid = "MyNetwork";
+  };
+}

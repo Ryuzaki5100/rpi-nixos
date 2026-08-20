@@ -1,15 +1,70 @@
-# First Boot — NixOS on the Raspberry Pi 5 (ryuzakipi)
+# First Boot — NixOS on the Raspberry Pi 5
 
-This guide covers what to do the first time you boot the NixOS system that was
-flashed from this flake onto the 256 GB SanDisk card. It boots straight into a
-**Hyprland + Noctalia v5 desktop**.
+Two images are released side by side. Which you flashed decides what "first
+boot" looks like:
+
+- **`v0.1` — Desktop image (2-part split).** This is the guide below: boots
+  straight into a **Hyprland + Noctalia v5 desktop** with the `ryuzaki` user
+  and wifi auto-connected. Least hassle.
+- **`v0.2` — Minimal image (single file).** See
+  [§ 0 — Minimal image first boot](#0-minimal-image-first-boot) instead: a
+  light console base where you choose your own username, hostname and wifi.
 
 Before you start, confirm the card is flashed and the partition was grown to
 the full card size (done by the flasher with `growpart` + `resize2fs`).
 
 ---
 
-## 1. Boot the Pi
+## 0. Minimal image first boot
+
+The minimal image gives you a bare NixOS console with `wifitui`, ssh and Nix
+flakes — no desktop, no baked wifi profile, no pre-created personal user. You
+define your own machine on first boot by cloning this repo and rebuilding.
+
+1. **Boot** (follow § 1 below for hardware steps). You land on the NixOS
+   console (tty1). Log in as the default bootstrap user:
+
+   ```text
+   login: bootstrap
+   password: changeme   # change it on first login: passwd
+   ```
+
+2. **Join your wifi** (or plug in Ethernet):
+
+   ```sh
+   sudo wifitui     # interactive TUI: pick a network, enter the password
+   ```
+
+   Once connected, the Pi is reachable over ssh (password auth, user
+   `bootstrap`) at `nixos-rpi5.local` — or use the console directly.
+
+3. **Clone this repo and configure your machine:**
+
+   ```sh
+   git clone https://github.com/Ryuzaki5100/rpi-nixos
+   cd rpi-nixos
+   ./setup.sh
+   ```
+
+   `setup.sh` asks for your **username, password, hostname and wifi**, writes
+   them into `local.nix` / `secrets.nix` (gitignored, safe to commit later),
+   then runs `nixos-rebuild switch --flake .#rpi5`. After it finishes (a few
+   minutes — closures come from the binary caches), reboot and you're in your
+   own Hyprland + Noctalia desktop as your user.
+
+4. **Manage it from then on** — same as the desktop guide below
+   (`sudo nixos-rebuild switch --flake /etc/nixos#rpi5`).
+
+> Prefer to bake a known machine straight into the image? `setup.sh --no-rebuild`
+> prints the config and lets you run the switch yourself, or you can edit
+> `local.nix`/`secrets.nix` by hand before building with `./build-image.sh`.
+
+---
+
+## 1. Boot the Pi (desktop image)
+
+This part covers the **v0.1 desktop image**, which boots straight into the
+Hyprland + Noctalia v5 desktop with the `ryuzaki` user.
 
 1. Power the Pi 5 **off** and unplug it.
 2. Remove the old Debian SD card and insert the new NixOS card into the SD slot
