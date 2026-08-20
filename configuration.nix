@@ -106,6 +106,17 @@ in
   };
 
   # ---------------------------------------------------------------------------
+  # Nix
+  # ---------------------------------------------------------------------------
+  # Enable the experimental Nix CLI and flakes so `nix flake`, `nixos-rebuild
+  # --flake`, and `nix run` work out of the box (no manual /etc/nix/nix.conf
+  # edits needed).
+  nix.settings.experimental-features = [
+    "nix-command"
+    "flakes"
+  ];
+
+  # ---------------------------------------------------------------------------
   # Extra packages
   # ---------------------------------------------------------------------------
   environment.systemPackages = with pkgs; [
