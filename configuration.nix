@@ -43,6 +43,21 @@ in
   users.users.root.openssh.authorizedKeys.keys =
     lib.optionals (local.sshKey or null != null && local.sshKey != "") [ local.sshKey ];
 
+  # The nvmd/nixpkgs installer profile declares a default `nixos` user account
+  # (normal user, wheel + networkmanager + video, empty password). Neutralize it
+  # to an inert system user (nologin shell, no groups, no home, no keys) so the
+  # ONLY usable account on device is the per-device user from local.nix above
+  # (chosen via ./setup.sh) — no stray default user with sudo access survives.
+  users.users.nixos = lib.mkForce {
+    isSystemUser = true;
+    group = "nogroup";
+    home = "/var/empty";
+    createHome = false;
+    shell = "/run/current-system/sw/bin/nologin";
+    hashedPassword = lib.mkForce null;
+    openssh.authorizedKeys.keys = lib.mkForce [ ];
+  };
+
   # ---------------------------------------------------------------------------
   # SSH
   # ---------------------------------------------------------------------------

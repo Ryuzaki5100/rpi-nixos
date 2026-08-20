@@ -27,12 +27,19 @@
   outputs =
     { nixos-raspberrypi, noctalia, nixpkgs-unstable, ... }@inputs:
     let
+      # Per-device hostname, read from the same local.nix that configuration.nix
+      # uses. Plain `sudo nixos-rebuild switch` (no --flake attr) resolves
+      # nixosConfigurations.<hostname>, so the desktop config is exposed under
+      # this name too. Falls back to the ryuzaki default when local.nix is
+      # absent (e.g. evaluating from a fresh clone/build machine).
+      local = if builtins.pathExists ./local.nix then import ./local.nix else {};
+      hostName = local.hostName or "ryuzakipi";
+
       # Prefer the binary-cached unstable-nixpkgs build of Noctalia (v5) over
       # compiling the upstream flake's package from source on the Pi.
       unstableNoctalia = nixpkgs-unstable.legacyPackages.aarch64-linux.noctalia;
-    in
-    {
-      nixosConfigurations.rpi5 = nixos-raspberrypi.lib.nixosInstaller {
+
+      rpi5 = nixos-raspberrypi.lib.nixosInstaller {
         specialArgs = inputs;
         modules = [
           nixos-raspberrypi.nixosModules.raspberry-pi-5.base
@@ -63,6 +70,13 @@
           ./modules/desktop.nix
         ];
       };
+    in
+    {
+      # The desktop config is exposed under the hostname (so plain
+      # `sudo nixos-rebuild switch` works on-device) as well as the canonical
+      # "rpi5" name used by build-image.sh / setup.sh -c.
+      nixosConfigurations.${hostName} = rpi5;
+      nixosConfigurations.rpi5 = rpi5;
 
       # Vanilla bootstrap image: base system + NetworkManager + wifitui +
       # ssh, with a generic default user. The user joins wifi on first boot,

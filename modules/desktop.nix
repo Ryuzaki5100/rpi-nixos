@@ -17,7 +17,9 @@ let
       mkdir -p /home/${userName}/.config/hypr
       cp -n ${../modules/noctalia.toml} /home/${userName}/.config/noctalia/config.toml || true
       cp -n ${../modules/hyprland.conf} /home/${userName}/.config/hypr/hyprland.conf || true
-      chown -R ${userName}:users /home/${userName}/.config/noctalia /home/${userName}/.config/hypr
+      # chown the parent .config too (and everything under it): `mkdir -p` above
+      # creates it as root, which would stop the user from writing any new config.
+      chown -R ${userName}:users /home/${userName}/.config
     '';
     deps = [ ];
   };

@@ -48,9 +48,12 @@ define your own machine on first boot by cloning this repo and rebuilding.
 
    `setup.sh` asks for your **username, password, hostname and wifi**, writes
    them into `local.nix` / `secrets.nix` (gitignored, safe to commit later),
-   then runs `nixos-rebuild switch --flake .#rpi5`. After it finishes (a few
-   minutes — closures come from the binary caches), reboot and you're in your
-   own Hyprland + Noctalia desktop as your user.
+   then runs `nixos-rebuild switch --flake .#<hostname>` — the desktop config
+   is exported under the hostname you choose, see `flake.nix`. After it
+   finishes (a few minutes — closures come from the binary caches), it runs
+   `scripts/first-run.sh` to fix the new user's home permissions and remove
+   orphaned homes, then you reboot into your own Hyprland + Noctalia desktop
+   as your user.
 
 4. **Manage it from then on** — same as the desktop guide below
    (`sudo nixos-rebuild switch --flake /etc/nixos#rpi5`).
@@ -143,6 +146,11 @@ on-device without cloning anything:
 ```sh
 # on the Pi
 sudo nixos-rebuild switch --flake /etc/nixos#rpi5
+# ... or just (the desktop config is exported under this machine's hostname):
+sudo nixos-rebuild switch
+
+# first-run repair, whenever apps only open under sudo:
+sudo /etc/nixos/scripts/first-run.sh
 ```
 
 This copies the updated repo into `/etc/nixos` on every activation, so your
@@ -210,6 +218,10 @@ then `sudo nixos-rebuild switch --flake /etc/nixos#rpi5`.
 
 - **No HDMI output after U-Boot:** the kernel needs `console=tty0` for display
   output. Add `boot.kernelParams = [ "console=tty0" ];` and rebuild.
+- **Apps only open with `sudo`:** the seeded `~/.config` was created as root,
+  so the user can't write new config files. Restore ownership with
+  `sudo /etc/nixos/scripts/first-run.sh` (setup.sh already runs this on first
+  boot).
 - **`ryuzakipi.local` doesn't resolve:** mDNS may be blocked by the network;
   find the IP via the router or `arp -a` and use that.
 - **Pi won't boot / constant crashes:** undervoltage is the usual cause — use

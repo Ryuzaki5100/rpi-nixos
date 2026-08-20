@@ -21,7 +21,8 @@ modules/desktop.nix    Hyprland + Noctalia + greetd autologin
 modules/minimal.nix    Vanilla bootstrap config (wifitui + ssh + flakes)
 modules/noctalia.toml  Seed config for the Noctalia shell (→ ~/.config/noctalia/config.toml)
 modules/hyprland.conf  Seed config for Hyprland (→ ~/.config/hypr/hyprland.conf)
-setup.sh               First-run wizard: prompts → local.nix/secrets.nix → rebuild
+setup.sh               First-run wizard: prompts → local.nix/secrets.nix → rebuild → first-run.sh
+scripts/first-run.sh   First-boot repair: fixes user home ownership, removes orphaned homes
 build-image.sh         Build the image; optionally flash + grow an SD card
 local.nix.example      Template for per-device personal config (copy to local.nix)
 secrets.nix.example    Template for passwords (copy to secrets.nix)
@@ -87,8 +88,11 @@ cd rpi-nixos
 ```
 
 `setup.sh` writes `local.nix` + `secrets.nix`, then runs
-`nixos-rebuild switch --flake .#rpi5`, booting you into the full desktop with
-**your** account.
+`nixos-rebuild switch --flake .#<hostname>` (the desktop config is exported
+under the hostname you choose, per `flake.nix`), booting you into the full
+desktop with **your** account. It then runs `scripts/first-run.sh` to fix the
+fresh user's home permissions and clean up orphaned home dirs. Run that script
+anytime apps refuse to open without sudo:
 
 ## Reproduce on another Pi
 
@@ -97,7 +101,8 @@ cd rpi-nixos
 2. `./build-image.sh --flash /dev/sdX` (or flash the minimal image + rebuild).
 3. Keep it updated on-device with
    `sudo nixos-rebuild switch --flake /etc/nixos#rpi5` (the flake is baked into
-   `/etc/nixos` at activation).
+   `/etc/nixos` at activation). Plain `sudo nixos-rebuild switch` also works,
+   since the desktop config is exported under the machine's hostname.
 
 The build trusts the [`nixos-raspberrypi` cachix](https://nixos-raspberrypi.cachix.org)
 for prebuilt kernel/firmware; Noctalia/Hyprland come from `cache.nixos.org`

@@ -17,11 +17,16 @@ Usage: setup.sh [OPTIONS]
 Prompts for your personal NixOS configuration, writes `local.nix` and
 `secrets.nix` into this repo, then runs:
 
-    nixos-rebuild switch --flake .#rpi5
+    nixos-rebuild switch --flake .#<hostname>
+
+(the desktop config is exported under the hostname you choose, see flake.nix).
+After a successful rebuild it runs ./scripts/first-run.sh to fix up the new
+user's home permissions and clean orphaned home dirs.
 
 Options:
   -n, --no-rebuild   Write config files only; skip nixos-rebuild switch
-  -c, --config NAME  NixOS configuration to build (default: rpi5)
+  -c, --config NAME  NixOS configuration to build (default: the hostname you
+                     choose in the prompts)
   -h, --help         Show this help
 EOF
 }
@@ -29,7 +34,7 @@ EOF
 set -euo pipefail
 
 REPO_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-CONFIG="rpi5"
+CONFIG=""
 REBUILD=1
 
 while [[ $# -gt 0 ]]; do
@@ -84,6 +89,10 @@ msg "rpi-nixos first-run setup"
 # ---------------------------------------------------------------------------
 
 ask "Machine hostname" HOSTNAME ryuzakipi
+
+# The flake exports the desktop config under the chosen hostname, so plain
+# `nixos-rebuild switch --flake .#<hostname>` just works (unless -c overrides).
+[[ -z "$CONFIG" ]] && CONFIG="$HOSTNAME"
 ask "Desktop username" USERNAME user
 ask_secret "Initial password for '$USERNAME'" USER_PASSWORD
 ask "ssh public key (optional, empty to skip)" SSH_KEY ""
@@ -170,4 +179,10 @@ fi
 
 msg "Rebuilding: sudo nixos-rebuild switch --flake .#$CONFIG"
 sudo nixos-rebuild switch --flake "$REPO_DIR#$CONFIG"
+
+# First boot: fix the fresh user's home ownership and remove orphaned homes
+# (e.g. the bootstrap user's leftover /home/bootstrap after the rebuild).
+msg "Running $REPO_DIR/scripts/first-run.sh ..."
+sudo "$REPO_DIR/scripts/first-run.sh"
+
 msg "Done. Reboot into your new desktop, or start it with uwsm start hyprland."

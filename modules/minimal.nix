@@ -1,5 +1,6 @@
 {
   pkgs,
+  lib,
   ...
 }:
 
@@ -27,6 +28,20 @@
     ];
     initialPassword = "changeme";
   };
+
+  # The nvmd/nixpkgs installer profile declares a default `nixos` user account.
+  # Neutralize and purge it so the only accounts are the ones above (bootstrap,
+  # and later the user chosen in setup.sh).
+  users.users.nixos = lib.mkForce {
+    isSystemUser = true;
+    group = "nogroup";
+    home = "/var/empty";
+    createHome = false;
+    shell = "/run/current-system/sw/bin/nologin";
+    hashedPassword = lib.mkForce null;
+    openssh.authorizedKeys.keys = lib.mkForce [ ];
+  };
+  services.getty.autologinUser = lib.mkForce "bootstrap";
 
   # ---------------------------------------------------------------------------
   # SSH enabled out of the box so the Pi is reachable once wifi is joined.
