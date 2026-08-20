@@ -140,7 +140,7 @@ msg "Wrote local.nix and secrets.nix"
 # git add -N (intent-to-add) makes the git flake-fetcher include them during
 # evaluation; --skip-worktree hides them from git add -A / git commit.
 if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-  git add -N -f -- local.nix secrets.nix
+  git add -N -f --sparse -- local.nix secrets.nix
   git update-index --skip-worktree -- local.nix secrets.nix
   msg "Marked local.nix + secrets.nix intent-to-add (safe from committing)."
 else

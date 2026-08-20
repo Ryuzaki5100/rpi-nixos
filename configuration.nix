@@ -37,11 +37,11 @@ in
     # One-time bootstrap password. Run `passwd` on first login to replace it.
     initialPassword = secrets.userPassword or "changeme";
     openssh.authorizedKeys.keys =
-      lib.optionals (local ? sshKey && local.sshKey != "") [ local.sshKey ];
+      lib.optionals (local.sshKey or null != null && local.sshKey != "") [ local.sshKey ];
   };
 
   users.users.root.openssh.authorizedKeys.keys =
-    lib.optionals (local ? sshKey && local.sshKey != "") [ local.sshKey ];
+    lib.optionals (local.sshKey or null != null && local.sshKey != "") [ local.sshKey ];
 
   # ---------------------------------------------------------------------------
   # SSH
